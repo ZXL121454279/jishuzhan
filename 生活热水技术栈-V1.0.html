@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生活热水技术栈-V1.0试用版</title>
+    <!-- 引入Chart.js用于图表展示 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #fafafa;
+        }
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #3498db;
+            margin-bottom: 15px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        .form-group label {
+            width: 200px;
+            font-weight: bold;
+        }
+        .form-group input, .form-group select {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #3498db;
+            color: white;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        .btn-calculate {
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: block;
+            margin: 30px auto;
+            transition: background-color 0.3s;
+        }
+        .btn-calculate:hover {
+            background-color: #2ecc71;
+        }
+        .results {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #e8f8f5;
+            border-left: 5px solid #2ecc71;
+            border-radius: 5px;
+        }
+        .result-item {
+            margin-bottom: 10px;
+            padding: 8px;
+            background-color: white;
+            border-radius: 4px;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 15px;
+        }
+        .tab {
+            padding: 10px 20px;
+            background-color: #eee;
+            border: 1px solid #ddd;
+            border-radius: 5px 5px 0 0;
+            cursor: pointer;
+            margin-right: 5px;
+            user-select: none;
+        }
+        .tab.active {
+            background-color: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+        .tab-content {
+            display: none;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 0 5px 5px 5px;
+            background-color: white;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .error-message {
+            color: #dc3545;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #f8d7da;
+            border-radius: 4px;
+        }
+        /* 图表容器样式 */
+        .chart-container {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        canvas {
+            width: 100% !important;
+            height: 400px !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>生活热水技术栈-V1.0试用版</h1>
+        
+        <div class="tabs">
+            <div class="tab active" data-tab="basic-data">基础数据输入</div>
+            <div class="tab" data-tab="parameters">相关系数输入</div>
+            <div class="tab" data-tab="calculation">节能量计算</div>
+        </div>
+        
+        <!-- 基础数据输入标签页 -->
+        <div id="basic-data" class="tab-content active">
+            <div class="section">
+                <div class="section-title">运行月份及能耗数据</div>
+                <table id="monthly-data-table">
+                    <thead>
+                        <tr>
+                            <th>月份</th>
+                            <th>节能改造前燃气消耗量(m³)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>1月</td><td><input type="number" value="4771.85" step="0.01" class="gas-input"></td></tr>
+                        <tr><td>2月</td><td><input type="number" value="4771.85" step="0.01" class="gas-input"></td></tr>
+                        <tr><td>3月</td><td><input type="number" value="4580.98" step="0.01" class="gas-input"></td></tr>
+                        <tr><td>4月</td><td><input type="number" value="4580.98" step="0.01" class="gas-input"></td></tr>
+                        <tr><td>5月</td><td><input type="number" value="4041.55" step="0.01" class="gas-input"></td></tr>
+                        <tr><td>6月</td><td><input type="number" value="4154.94" step="0.01" class="gas-input"></td></tr>
+                        <tr><td>7月</td><td><input type="number" value="3693.86" step="0.01" class="gas-input"></td></tr>
+                        <tr><td>8月</td><td><input type="number" value="3606.49" step="0.01" class="gas-input"></td></tr>
+                        <tr><td>9月</td><td><input type="number" value="3641.74" step="0.01" class="gas-input"></td></tr>
+                        <tr><td>10月</td><td><input type="number" value="3766.31" step="0.01" class="gas-input"></td></tr>
+                        <tr><td>11月</td><td><input type="number" value="4199.23" step="0.01" class="gas-input"></td></tr>
+                        <tr><td>12月</td><td><input type="number" value="4771.85" step="0.01" class="gas-input"></td></tr>
+                    </tbody>
+                </table>
+                <div style="margin-top: 15px; text-align: right;">
+                    合计: <span id="total-gas-consumption">50581.64</span> m³
+                </div>
+            </div>
+        </div>
+        
+        <!-- 相关系数输入标签页 -->
+        <div id="parameters" class="tab-content">
+            <div class="section">
+                <div class="section-title">供热系统参数</div>
+                <div class="form-group">
+                    <label>原热水供热形式:</label>
+                    <select id="original-heating-type">
+                        <option value="燃气蒸汽锅炉" selected>燃气蒸汽锅炉</option>
+                        <option value="燃煤锅炉">燃煤锅炉</option>
+                        <option value="市政热力">市政热力</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>除热泵外供热形式:</label>
+                    <select id="other-heating-type">
+                        <option value="燃气蒸汽锅炉" selected>燃气蒸汽锅炉</option>
+                        <option value="燃煤锅炉">燃煤锅炉</option>
+                        <option value="市政热力">市政热力</option>
+                        <option value="无">无</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">技术参数</div>
+                <div class="form-group">
+                    <label>燃气热值(MJ/m³):</label>
+                    <input type="number" id="gas-calorific-value" value="35.5" step="0.1">
+                </div>
+                <div class="form-group">
+                    <label>锅炉效率:</label>
+                    <input type="number" id="boiler-efficiency" value="0.8" step="0.01" min="0" max="1">
+                </div>
+                <div class="form-group">
+                    <label>输配效率:</label>
+                    <input type="number" id="distribution-efficiency" value="0.85" step="0.01" min="0" max="1">
+                </div>
+                <div class="form-group">
+                    <label>热泵每日运行时间(h):</label>
+                    <input type="number" id="heat-pump-runtime" value="12" step="1" min="1" max="24">
+                </div>
+                <div class="form-group">
+                    <label>计算安全余量:</label>
+                    <input type="number" id="safety-factor" value="1.2" step="0.1" min="1">
+                </div>
+                <div class="form-group">
+                    <label>智控系统节能率:</label>
+                    <input type="number" id="control-system-saving" value="0.05" step="0.01" min="0" max="1">
+                </div>
+                <div class="form-group">
+                    <label>替代率保险系数:</label>
+                    <input type="number" id="replacement-safety-factor" value="0.2" step="0.01" min="0" max="1">
+                </div>
+                <div class="form-group">
+                    <label>热泵效率计算余量:</label>
+                    <input type="number" id="efficiency-safety-factor" value="0.1" step="0.01" min="0" max="1">
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">热泵选型参数</div>
+                <div class="form-group">
+                    <label>热泵初步选型数量(台):</label>
+                    <input type="number" id="heat-pump-count" value="1" step="1" min="1">
+                </div>
+                <div class="form-group">
+                    <label>单台热泵名义制热量(KW):</label>
+                    <input type="number" id="heat-pump-capacity" value="96.5" step="0.1" min="1">
+                </div>
+                <div class="form-group">
+                    <label>单台热泵投资估算（元）:</label>
+                    <input type="number" id="heat-pump-investment" value="100000" step="1000" min="0">
+                </div>
+            </div>
+        </div>
+        
+        <!-- 节能量计算标签页 -->
+        <div id="calculation" class="tab-content">
+            <div class="section">
+                <div class="section-title">气象数据</div>
+                <table id="weather-data-table">
+                    <thead>
+                        <tr>
+                            <th>月份</th>
+                            <th>每月天数(日)</th>
+                            <th>月平均气温(℃)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>1月</td><td><input type="number" value="31" step="1" class="days-input"></td><td><input type="number" value="4.6" step="0.1" class="temp-input"></td></tr>
+                        <tr><td>2月</td><td><input type="number" value="28" step="1" class="days-input"></td><td><input type="number" value="6.2" step="0.1" class="temp-input"></td></tr>
+                        <tr><td>3月</td><td><input type="number" value="31" step="1" class="days-input"></td><td><input type="number" value="12.6" step="0.1" class="temp-input"></td></tr>
+                        <tr><td>4月</td><td><input type="number" value="30" step="1" class="days-input"></td><td><input type="number" value="17.3" step="0.1" class="temp-input"></td></tr>
+                        <tr><td>5月</td><td><input type="number" value="31" step="1" class="days-input"></td><td><input type="number" value="21.9" step="0.1" class="temp-input"></td></tr>
+                        <tr><td>6月</td><td><input type="number" value="30" step="1" class="days-input"></td><td><input type="number" value="25.9" step="0.1" class="temp-input"></td></tr>
+                        <tr><td>7月</td><td><input type="number" value="31" step="1" class="days-input"></td><td><input type="number" value="28.8" step="0.1" class="temp-input"></td></tr>
+                        <tr><td>8月</td><td><input type="number" value="31" step="1" class="days-input"></td><td><input type="number" value="28.2" step="0.1" class="temp-input"></td></tr>
+                        <tr><td>9月</td><td><input type="number" value="30" step="1" class="days-input"></td><td><input type="number" value="24.7" step="0.1" class="temp-input"></td></tr>
+                        <tr><td>10月</td><td><input type="number" value="31" step="1" class="days-input"></td><td><input type="number" value="18.7" step="0.1" class="temp-input"></td></tr>
+                        <tr><td>11月</td><td><input type="number" value="30" step="1" class="days-input"></td><td><input type="number" value="11.9" step="0.1" class="temp-input"></td></tr>
+                        <tr><td>12月</td><td><input type="number" value="31" step="1" class="days-input"></td><td><input type="number" value="4.7" step="0.1" class="temp-input"></td></tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">能源价格</div>
+                <div class="form-group">
+                    <label>电力单价(元/kWh):</label>
+                    <input type="number" id="electricity-price" value="0.7" step="0.01" min="0">
+                </div>
+                <div class="form-group">
+                    <label>燃气单价(元/m³):</label>
+                    <input type="number" id="gas-price" value="4.88" step="0.01" min="0">
+                </div>
+                <div class="form-group">
+                    <label>热力单价(元/GJ):</label>
+                    <input type="number" id="heat-price" value="25" step="0.1" min="0">
+                </div>
+            </div>
+            
+            <button class="btn-calculate" onclick="calculateSavings()">开始计算</button>
+            
+            <div class="results" id="results-section" style="display: none;">
+                <h3>计算结果</h3>
+                <div class="result-item"><strong>改造前年费用:</strong> <span id="before-cost">0</span> 元</div>
+                <div class="result-item"><strong>改造后年费用:</strong> <span id="after-cost">0</span> 元</div>
+                <div class="result-item"><strong>年节约费用:</strong> <span id="annual-savings">0</span> 元</div>
+                <div class="result-item"><strong>节能率:</strong> <span id="energy-saving-rate">0</span>%</div>
+                <div class="result-item"><strong>系统总改造投资:</strong> <span id="total-investment">0</span> 元</div>
+                <div class="result-item"><strong>投资回收期:</strong> <span id="payback-period">0</span> 年</div>
+                
+                <h4 style="margin-top: 20px;">月度详细数据</h4>
+                <table id="monthly-results-table">
+                    <thead>
+                        <tr>
+                            <th>月份</th>
+                            <th>月均气温(℃)</th>
+                            <th>气温修正系数</th>
+                            <th>修正后热泵制热量(kW)</th>
+                            <th>替代率</th>
+                            <th>改造后耗热量(kWh)</th>
+                            <th>热泵制热量(kWh)</th>
+                            <th>热泵耗电量(kWh)</th>
+                            <th>燃气消耗量(m³)</th>
+                            <th>改造后运行费用(元)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="monthly-results-body">
+                        <!-- 动态生成的月度数据将放在这里 -->
+                    </tbody>
+                </table>
+                
+                <!-- 新增图表容器 -->
+                <div class="chart-container">
+                    <h4>改造前后月度费用对比</h4>
+                    <canvas id="costComparisonChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 标签切换逻辑
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化标签切换事件
+            const tabsContainer = document.querySelector('.tabs');
+            tabsContainer.addEventListener('click', function(e) {
+                const tab = e.target.closest('.tab');
+                if (!tab) return;
+                
+                // 移除所有active类
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                // 给当前点击的标签和对应内容加active
+                const tabId = tab.dataset.tab;
+                tab.classList.add('active');
+                document.getElementById(tabId).classList.add('active');
+            });
+
+            // 初始化燃气消耗量合计计算
+            const gasInputs = document.querySelectorAll('.gas-input');
+            gasInputs.forEach(input => {
+                input.addEventListener('change', calculateTotalGasConsumption);
+            });
+            calculateTotalGasConsumption();
+        });
+
+        // 计算总燃气消耗量
+        function calculateTotalGasConsumption() {
+            const gasInputs = document.querySelectorAll('.gas-input');
+            let total = 0;
+            gasInputs.forEach(input => {
+                total += parseFloat(input.value) || 0;
+            });
+            document.getElementById('total-gas-consumption').textContent = total.toFixed(2);
+            return total;
+        }
+
+        // 热泵效率查找表（根据环境温度）
+        const heatPumpEfficiencyTable = {
+            temperatures: [0, 5, 10, 15, 20, 25, 30],
+            efficiencies: [2.5, 2.8, 3.2, 3.6, 4.0, 4.3, 4.5]
+        };
+
+        // 热泵气温修正系数表（行业通用标准）
+        const tempCorrectionTable = {
+            temperatures: [-5, 0, 5, 10, 15, 20, 25, 30], // 基准气温
+            correctionFactors: [0.65, 0.75, 0.85, 0.93, 0.98, 1.0, 1.02, 1.03] // 对应修正系数
+        };
+
+        // 查找热泵效率
+        function lookupHeatPumpEfficiency(temp) {
+            const temps = heatPumpEfficiencyTable.temperatures;
+            const effs = heatPumpEfficiencyTable.efficiencies;
+            
+            if (temp <= temps[0]) return effs[0];
+            if (temp >= temps[temps.length - 1]) return effs[effs.length - 1];
+            
+            // 线性插值
+            for (let i = 1; i < temps.length; i++) {
+                if (temp <= temps[i]) {
+                    const ratio = (temp - temps[i - 1]) / (temps[i] - temps[i - 1]);
+                    return effs[i - 1] + ratio * (effs[i] - effs[i - 1]);
+                }
+            }
+            return effs[effs.length - 1];
+        }
+
+        // 内插法计算气温修正系数
+        function calculateTempCorrectionFactor(temp) {
+            const temps = tempCorrectionTable.temperatures;
+            const factors = tempCorrectionTable.correctionFactors;
+            
+            // 边界值处理
+            if (temp <= temps[0]) return factors[0];
+            if (temp >= temps[temps.length - 1]) return factors[factors.length - 1];
+            
+            // 线性内插计算
+            for (let i = 1; i < temps.length; i++) {
+                if (temp <= temps[i]) {
+                    const deltaTemp = temps[i] - temps[i - 1];
+                    const deltaFactor = factors[i] - factors[i - 1];
+                    const ratio = (temp - temps[i - 1]) / deltaTemp;
+                    return factors[i - 1] + ratio * deltaFactor;
+                }
+            }
+            return factors[factors.length - 1];
+        }
+
+        // 计算主函数
+        function calculateSavings() {
+            try {
+                // 获取基础参数
+                const gasCalorificValue = parseFloat(document.getElementById('gas-calorific-value').value);
+                const boilerEfficiency = parseFloat(document.getElementById('boiler-efficiency').value);
+                const distributionEfficiency = parseFloat(document.getElementById('distribution-efficiency').value);
+                const heatPumpRuntime = parseFloat(document.getElementById('heat-pump-runtime').value);
+                const safetyFactor = parseFloat(document.getElementById('safety-factor').value);
+                const controlSystemSaving = parseFloat(document.getElementById('control-system-saving').value);
+                const replacementSafetyFactor = parseFloat(document.getElementById('replacement-safety-factor').value);
+                const efficiencySafetyFactor = parseFloat(document.getElementById('efficiency-safety-factor').value);
+                const heatPumpCount = parseInt(document.getElementById('heat-pump-count').value);
+                const heatPumpCapacity = parseFloat(document.getElementById('heat-pump-capacity').value);
+                const heatPumpInvestment = parseFloat(document.getElementById('heat-pump-investment').value);
+                
+                // 获取能源价格
+                const electricityPrice = parseFloat(document.getElementById('electricity-price').value);
+                const gasPrice = parseFloat(document.getElementById('gas-price').value);
+                const heatPrice = parseFloat(document.getElementById('heat-price').value);
+                
+                // 计算系统总改造投资
+                const totalInvestment = heatPumpCount * heatPumpInvestment + 150000;
+                
+                // 获取月度数据
+                const monthlyData = [];
+                for (let i = 0; i < 12; i++) {
+                    const gasConsumption = parseFloat(document.querySelectorAll('.gas-input')[i].value);
+                    const days = parseInt(document.querySelectorAll('.days-input')[i].value);
+                    const avgTemp = parseFloat(document.querySelectorAll('.temp-input')[i].value);
+                    
+                    monthlyData.push({
+                        month: i + 1,
+                        gasConsumption: gasConsumption,
+                        days: days,
+                        avgTemp: avgTemp
+                    });
+                }
+                
+                // 计算改造前年费用
+                let beforeAnnualCost = 0;
+                const beforeMonthlyCosts = []; // 存储每月改造前费用用于图表
+                monthlyData.forEach(month => {
+                    const monthlyCost = month.gasConsumption * gasPrice;
+                    beforeAnnualCost += monthlyCost;
+                    beforeMonthlyCosts.push(monthlyCost);
+                });
+                
+                // 计算每月改造后的数据
+                let afterAnnualCost = 0;
+                let totalEnergySaved = 0;
+                let monthlyResultsHtml = '';
+                const afterMonthlyCosts = []; // 存储每月改造后费用用于图表
+                const monthLabels = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
+                
+                monthlyData.forEach(month => {
+                    // 计算当月气温修正系数
+                    const tempCorrectionFactor = calculateTempCorrectionFactor(month.avgTemp);
+                    // 修正热泵名义制热量
+                    const correctedHeatPumpCapacity = heatPumpCapacity * tempCorrectionFactor * heatPumpCount;
+                    
+                    // 将燃气消耗量转换为热能需求(kWh)
+                    const gasEnergyMJ = month.gasConsumption * gasCalorificValue;
+                    const gasEnergyKWh = gasEnergyMJ / 3.6;
+                    const monthlyHeatDemand = gasEnergyKWh * (boilerEfficiency * distributionEfficiency);
+                    
+                    // 改造后月度热需求
+                    const modifiedMonthlyDemand = monthlyHeatDemand * (1 - controlSystemSaving);
+                    
+                    // 小时级热需求
+                    const hourlyHeatDemand = modifiedMonthlyDemand / month.days / heatPumpRuntime * safetyFactor;
+                    
+                    // 计算热泵效率
+                    const heatPumpEfficiency = lookupHeatPumpEfficiency(month.avgTemp) * (1 - efficiencySafetyFactor);
+                    
+                    // 计算热泵替代率
+                    const replacementRate = Math.min(
+                        correctedHeatPumpCapacity / hourlyHeatDemand * (1 - replacementSafetyFactor), 
+                        1
+                    );
+                    
+                    // 计算实际热泵制热量
+                    const actualHeatPumpOutput = modifiedMonthlyDemand * replacementRate;
+                    
+                    // 计算热泵耗电量
+                    const heatPumpElectricity = actualHeatPumpOutput / heatPumpEfficiency;
+                    
+                    // 计算其余供热方式的供热量
+                    const remainingHeat = modifiedMonthlyDemand - actualHeatPumpOutput;
+                    
+                    // 计算燃气消耗量
+                    let gasConsumptionAfter = 0;
+                    if (remainingHeat > 0) {
+                        const originalHeatingType = document.getElementById('original-heating-type').value;
+                        if (originalHeatingType === '燃气蒸汽锅炉') {
+                            gasConsumptionAfter = remainingHeat * 3.6 / (gasCalorificValue * boilerEfficiency * distributionEfficiency);
+                        }
+                    }
+                    
+                    // 计算改造后运行费用
+                    const operatingCost = heatPumpElectricity * electricityPrice + gasConsumptionAfter * gasPrice;
+                    afterMonthlyCosts.push(operatingCost);
+                    
+                    // 累计年度费用
+                    afterAnnualCost += operatingCost;
+                    
+                    // 计算节能效果
+                    const energySaved = month.gasConsumption * gasCalorificValue / 3.6 - modifiedMonthlyDemand;
+                    totalEnergySaved += energySaved;
+                    
+                    // 生成月度结果HTML
+                    monthlyResultsHtml += `<tr>
+                        <td>${month.month}月</td>
+                        <td>${month.avgTemp.toFixed(1)}</td>
+                        <td>${tempCorrectionFactor.toFixed(3)}</td>
+                        <td>${correctedHeatPumpCapacity.toFixed(2)}</td>
+                        <td>${(replacementRate * 100).toFixed(2)}%</td>
+                        <td>${modifiedMonthlyDemand.toFixed(2)}</td>
+                        <td>${actualHeatPumpOutput.toFixed(2)}</td>
+                        <td>${heatPumpElectricity.toFixed(2)}</td>
+                        <td>${gasConsumptionAfter.toFixed(2)}</td>
+                        <td>${operatingCost.toFixed(2)}</td>
+                    </tr>`;
+                });
+                
+                // 计算投资回收期
+                const annualSavings = beforeAnnualCost - afterAnnualCost;
+                let paybackPeriod;
+                
+                if (annualSavings <= 0) {
+                    paybackPeriod = "无法回收（成本增加）";
+                } else if (annualSavings < 1000) {
+                    paybackPeriod = "超过250年（节约微小）";
+                } else {
+                    paybackPeriod = (totalInvestment / annualSavings).toFixed(2);
+                }
+                
+                // 显示结果
+                document.getElementById('before-cost').textContent = beforeAnnualCost.toFixed(2);
+                document.getElementById('after-cost').textContent = afterAnnualCost.toFixed(2);
+                document.getElementById('annual-savings').textContent = annualSavings.toFixed(2);
+                document.getElementById('energy-saving-rate').textContent = ((annualSavings) / beforeAnnualCost * 100).toFixed(2);
+                document.getElementById('total-investment').textContent = totalInvestment.toFixed(2);
+                document.getElementById('payback-period').textContent = paybackPeriod;
+                
+                document.getElementById('monthly-results-body').innerHTML = monthlyResultsHtml;
+                document.getElementById('results-section').style.display = 'block';
+                
+                // 生成改造前后费用对比图表
+                createCostComparisonChart(monthLabels, beforeMonthlyCosts, afterMonthlyCosts);
+                
+            } catch (error) {
+                console.error("计算过程中发生错误:", error);
+                
+                // 显示错误信息给用户
+                const resultsSection = document.getElementById('results-section');
+                if (resultsSection) {
+                    resultsSection.innerHTML = `<div class="error-message">
+                        计算过程中发生错误: ${error.message}<br><br>
+                        请检查输入参数是否正确，或联系技术支持。
+                    </div>`;
+                    resultsSection.style.display = 'block';
+                }
+            }
+        }
+
+        // 创建改造前后费用对比图表
+        function createCostComparisonChart(labels, beforeCosts, afterCosts) {
+            const ctx = document.getElementById('costComparisonChart').getContext('2d');
+            
+            // 销毁已存在的图表实例
+            if (window.costChart) {
+                window.costChart.destroy();
+            }
+            
+            // 创建新图表
+            window.costChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: '改造前月度费用(元)',
+                            data: beforeCosts,
+                            backgroundColor: 'rgba(255, 99, 132, 0.7)',
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: '改造后月度费用(元)',
+                            data: afterCosts,
+                            backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: '费用 (元)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: '月份'
+                            }
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '改造前后月度费用对比',
+                            font: {
+                                size: 16
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.raw.toFixed(2) + ' 元';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
